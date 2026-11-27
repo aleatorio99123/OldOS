@@ -104,27 +104,27 @@ k_get_cmos_str:
     jnz .wait_rtc
 
     mov edi, cmos_buf
-    mov al, 0x04            ; Horas
+    mov al, 0x04
     call .r
     mov byte [edi], ':'
     inc edi
-    mov al, 0x02            ; Minutos
+    mov al, 0x02
     call .r
     mov byte [edi], ':'
     inc edi
-    mov al, 0x00            ; Segundos
+    mov al, 0x00
     call .r
     mov byte [edi], ' '
     inc edi
-    mov al, 0x07            ; Dia
+    mov al, 0x07
     call .r
     mov byte [edi], '/'
     inc edi
-    mov al, 0x08            ; Mes
+    mov al, 0x08
     call .r
     mov byte [edi], '/'
     inc edi
-    mov al, 0x09            ; Ano
+    mov al, 0x09
     call .r
     mov byte [edi], 0
     pop edi
@@ -218,26 +218,24 @@ k_strncmp:
 .ne: or eax, 1
     ret
 
-msg_banner   db 'OldOS v2.1 HighColor Kernel | VelocityAnOldShell (veloldsh)', 10
-             db 'Type "oldog" to launch GUI or "help" for original commands.', 10, 10, 0
+msg_banner   db 'OldOS v3.0 HighColor Kernel | VelocityAnOldShell (veloldsh)', 10
+             db 'Type "oldog" to launch GUI or "help" for commands.', 10, 10, 0
 msg_prompt   db 'oldos@veloldsh:~$ ', 0
 msg_bad      db 'Unknown command. Type "help".', 10, 0
-msg_safe_off db 'It is now safe to turn off your computer.', 0
-msg_help     db 'Original veloldsh Commands:', 10
-             db '  oldog        - Launch Oldog v2.1 Desktop Environment', 10
-             db '  sysinfo      - Full hardware & display summary', 10
-             db '  play [1-3]   - Play PC Speaker tracks (1=Ode, 2=March, 3=Arcade)', 10
-             db '  dog          - Print Oldog ASCII mascot', 10
-             db '  beep         - Test motherboard speaker', 10
-             db '  mem / cpu / time / echo [txt] / cls / reboot / shutdown', 10, 0
-msg_ver      db 'OldOS v2.1 (32-bit Protected Mode) | Desktop: Oldog v2.1', 10, 0
+msg_help     db 'veloldsh v3.0 Commands:', 10
+             db '  oldog        - Launch Oldog v2.2 Desktop Environment', 10
+             db '  save [text]  - Save note to USB/Disk (OldFS)', 10
+             db '  cat          - Read saved note from USB/Disk', 10
+             db '  play [1-5]   - Play tracks (1=Ode, 2=March, 3=Arcade, 4=Elise, 5=Tetris)', 10
+             db '  sysinfo / mem / cpu / time / dog / beep / cls / reboot / shutdown', 10, 0
+msg_ver      db 'OldOS v3.0 (32-bit ACPI PowerOff + OldFS) | Desktop: Oldog v2.2', 10, 0
 msg_res      db 'Display: 800x600x16 HighColor VESA LFB', 10, 0
 msg_mem_conv db 'Conventional RAM: ', 0
 msg_mem_ext  db 'Total System RAM: ', 0
 msg_kb       db ' KB', 10, 0
 msg_mb       db ' MB', 10, 0
 msg_dog_art  db '  / \__', 10
-             db ' (    @\___   Oldog v2.1 - Chewing CRT cables since 1900!', 10
+             db ' (    @\___   Oldog v2.2 - Chewing CRT cables since 1900!', 10
              db ' /         O', 10
              db '/   (_____/', 10, 0
 
@@ -249,12 +247,14 @@ str_ver      db 'ver', 0
 str_sysinfo  db 'sysinfo', 0
 str_dog      db 'dog', 0
 str_beep     db 'beep', 0
+str_cat      db 'cat', 0
 str_mem      db 'mem', 0
 str_time     db 'time', 0
 str_cpu      db 'cpu', 0
 str_reboot   db 'reboot', 0
 str_shutdown db 'shutdown', 0
 str_echo     db 'echo ', 0
+str_save     db 'save ', 0
 str_play     db 'play ', 0
 
 song_imperial:
@@ -262,6 +262,12 @@ song_imperial:
     dw 2711, 350, 3416, 260, 2280, 110, 2711, 600, 0, 0
 song_arcade:
     dw 1805, 110, 1517, 110, 1207, 110, 902, 220, 1207, 110, 902, 400, 0, 0
+song_elise:
+    dw 1805, 160, 1911, 160, 1805, 160, 1911, 160, 1805, 160, 2415, 160
+    dw 2024, 160, 2280, 160, 2711, 400, 0, 0
+song_tetris:
+    dw 1805, 280, 2415, 140, 2280, 140, 2024, 280, 2280, 140, 2415, 140
+    dw 2711, 280, 2711, 140, 2280, 140, 1805, 280, 2024, 140, 2280, 140, 2415, 420, 0, 0
 
 keymap:
     db 0, 27, '1','2','3','4','5','6','7','8','9','0','-','=', 8, 9
