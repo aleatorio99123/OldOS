@@ -15,16 +15,23 @@ start:
     sti
 
     mov [boot_drive], dl
+    mov [0x0508], dl
 
     int 0x12
     movzx eax, ax
     mov [0x0500], eax
 
-    xor cx, cx
-    xor dx, dx
+    xor eax, eax
+    xor ebx, ebx
+    xor ecx, ecx
+    xor edx, edx
     mov ax, 0xE801
     int 0x15
     jc .ram_fb
+    or bx, bx
+    jnz .use_bx
+    mov bx, dx
+.use_bx:
     movzx eax, bx
     shr eax, 4
     add eax, 16
@@ -40,11 +47,11 @@ start:
     int 0x13
     jnc .load_ok
 
-    xor ax, ax
+    mov ax, 0x1000
     mov es, ax
-    mov bx, 0x1000
+    xor bx, bx
     mov ah, 0x02
-    mov al, 48
+    mov al, 64
     mov ch, 0
     mov cl, 2
     mov dh, 0
@@ -53,6 +60,10 @@ start:
     jc disk_err
 
 .load_ok:
+    xor ax, ax
+    mov ds, ax
+    mov es, ax
+
     push es
     mov ax, 0x1130
     mov bh, 0x06
@@ -107,11 +118,9 @@ disk_err:
 
 align 4
 dap:
-    db 0x10
-    db 0x00
-    dw 48
-    dw 0x1000
-    dw 0x0000
+    db 0x10, 0x00
+    dw 64
+    dw 0x0000, 0x1000
     dq 1
 
 align 8
@@ -139,7 +148,13 @@ init_pm:
     mov ss, ax
     mov esp, 0x90000
 
-    mov eax, 0x1000
+    ; Copia os 32 KB do kernel de 0x10000 para 0x100000 (1 MB) - zero conflito!
+    mov esi, 0x10000
+    mov edi, 0x100000
+    mov ecx, 8192
+    rep movsd
+
+    mov eax, 0x100000
     jmp eax
 
 boot_drive db 0
