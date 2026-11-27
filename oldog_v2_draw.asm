@@ -86,7 +86,7 @@ v2_draw_desktop_icons:
     mov esi, v2_i3
     call k_print_xy
 
-    ; 4. OldStore Loja de Apps
+    ; 4. OldStore
     mov dword [r_x], 40
     mov dword [r_y], 264
     mov dword [r_w], 20
@@ -110,9 +110,104 @@ v2_draw_desktop_icons:
     mov esi, v2_i4
     call k_print_xy
 
-    ; 5. Smusic Dog Old (apos instalar)
+    ; 5. Coluna 2 (Y=28): Icone OldOS Updater
+    mov dword [r_x], 104
+    mov dword [r_y], 28
+    mov dword [r_w], 40
+    mov dword [r_h], 40
+    mov dword [r_rgb], 0x000284C7
+    call k_fill_rect
+    mov dword [r_x], 112
+    mov dword [r_y], 38
+    mov dword [r_w], 24
+    mov dword [r_h], 6
+    mov dword [r_rgb], 0x00FFFFFF
+    call k_fill_rect
+    mov dword [r_x], 112
+    mov dword [r_y], 52
+    mov dword [r_w], 24
+    mov dword [r_h], 6
+    call k_fill_rect
+    mov dword [t_px], 98
+    mov dword [t_py], 76
+    mov esi, v2_i_upd
+    call k_print_xy
+
+    ; 6. Coluna 2 (Y=108): Icone OldPaint
+    mov dword [r_x], 104
+    mov dword [r_y], 108
+    mov dword [r_w], 40
+    mov dword [r_h], 40
+    mov dword [r_rgb], 0x00F8FAFC
+    call k_fill_rect
+    mov dword [r_x], 110
+    mov dword [r_y], 114
+    mov dword [r_w], 10
+    mov dword [r_h], 10
+    mov dword [r_rgb], 0x00DC2626
+    call k_fill_rect
+    mov dword [r_x], 126
+    mov dword [r_rgb], 0x002563EB
+    call k_fill_rect
+    mov dword [r_x], 110
+    mov dword [r_y], 130
+    mov dword [r_rgb], 0x0016A34A
+    call k_fill_rect
+    mov dword [r_x], 126
+    mov dword [r_rgb], 0x00FACC15
+    call k_fill_rect
+    mov dword [t_px], 96
+    mov dword [t_py], 156
+    mov esi, v2_i_paint
+    call k_print_xy
+
+    ; 7. Coluna 2 (Y=188): Icone OldPong
+    mov dword [r_x], 104
+    mov dword [r_y], 188
+    mov dword [r_w], 40
+    mov dword [r_h], 40
+    mov dword [r_rgb], 0x001E293B
+    call k_fill_rect
+    mov dword [r_x], 112
+    mov dword [r_y], 216
+    mov dword [r_w], 24
+    mov dword [r_h], 5
+    mov dword [r_rgb], 0x0038BDF8
+    call k_fill_rect
+    mov dword [r_x], 120
+    mov dword [r_y], 200
+    mov dword [r_w], 8
+    mov dword [r_h], 8
+    mov dword [r_rgb], 0x00FFFFFF
+    call k_fill_rect
+    mov dword [t_px], 98
+    mov dword [t_py], 234
+    mov esi, v2_i_pong
+    call k_print_xy
+
+    ; 8. Coluna 2 (Y=268): Icone OldFE (Pasta amarela)
+    mov dword [r_x], 104
+    mov dword [r_y], 268
+    mov dword [r_w], 18
+    mov dword [r_h], 6
+    mov dword [r_rgb], 0x00D97706
+    call k_fill_rect
+    mov dword [r_x], 104
+    mov dword [r_y], 274
+    mov dword [r_w], 40
+    mov dword [r_h], 32
+    mov dword [r_rgb], 0x00FACC15
+    call k_fill_rect
+    mov byte [t_transp], 1
+    mov dword [t_fg_rgb], 0x00FFFFFF
+    mov dword [t_px], 104
+    mov dword [t_py], 314
+    mov esi, v2_i_fe
+    call k_print_xy
+
+    ; 9. Smusic Dog Old
     cmp byte [smusic_installed], 1
-    jne .col2_icons
+    jne .no_smusic_ico
     mov dword [r_x], 30
     mov dword [r_y], 348
     mov dword [r_w], 40
@@ -139,37 +234,14 @@ v2_draw_desktop_icons:
     mov dword [t_py], 394
     mov esi, v2_i5
     call k_print_xy
-
-.col2_icons:
-    ; 6. OldOS Updater (Coluna 2: X=104, Y=28)
-    mov dword [r_x], 104
-    mov dword [r_y], 28
-    mov dword [r_w], 40
-    mov dword [r_h], 40
-    mov dword [r_rgb], 0x000284C7
-    call k_fill_rect
-    mov dword [r_x], 112
-    mov dword [r_y], 38
-    mov dword [r_w], 24
-    mov dword [r_h], 6
-    mov dword [r_rgb], 0x00FFFFFF
-    call k_fill_rect
-    mov dword [r_x], 112
-    mov dword [r_y], 52
-    mov dword [r_w], 24
-    mov dword [r_h], 6
-    call k_fill_rect
-    mov dword [t_px], 98
-    mov dword [t_py], 76
-    mov esi, v2_i_upd
-    call k_print_xy
+.no_smusic_ico:
     ret
 
 v2_draw_start_menu:
     mov dword [r_x], 8
-    mov dword [r_y], 344
+    mov dword [r_y], 378
     mov dword [r_w], 180
-    mov dword [r_h], 216
+    mov dword [r_h], 182
     mov dword [r_rgb], 0x001E293B
     call k_fill_rect
 
@@ -177,33 +249,28 @@ v2_draw_start_menu:
     mov dword [t_fg_rgb], 0x00FFFFFF
 
     mov dword [t_px], 20
-    mov dword [t_py], 356
+    mov dword [t_py], 390
     mov esi, v2_m1
     call k_print_xy
 
     mov dword [t_px], 20
-    mov dword [t_py], 390
+    mov dword [t_py], 424
     mov esi, v2_m2
     call k_print_xy
 
     mov dword [t_px], 20
-    mov dword [t_py], 424
+    mov dword [t_py], 458
     mov esi, v2_m3_web
     call k_print_xy
 
     mov dword [t_px], 20
-    mov dword [t_py], 458
+    mov dword [t_py], 492
     mov esi, v2_m4_store
     call k_print_xy
 
     mov dword [t_px], 20
-    mov dword [t_py], 492
-    mov esi, v2_m_upd
-    call k_print_xy
-
-    mov dword [t_px], 20
     mov dword [t_py], 528
-    mov esi, v2_m6_exit
+    mov esi, v2_m5_exit
     call k_print_xy
     ret
 
