@@ -1,13 +1,17 @@
 start_oldog_v2:
     call k_init_ps2_mouse_v2
+    call v2_init_paint
+    call v2_init_pong
     mov dword [mx], 400
     mov dword [my], 300
     mov byte [midx], 0
     mov byte [mclk], 0
+    mov byte [m_down], 0
     mov byte [v2_menu], 0
     mov byte [v2_app], 0
     mov byte [web_page], 0
     mov byte [last_sec], 0xFF
+    mov byte [pg_ticks], 0
 
 v2_render_frame:
     call k_draw_wallpaper
@@ -60,7 +64,19 @@ v2_loop:
     test al, 0x01
     jnz .has_input
 
-    ; Mesmo com o mouse parado, checa se o segundo mudou no CMOS!
+    ; Se o OldPong (v2_app = 9) estiver aberto, atualiza a fisica a cada ~30ms
+    cmp byte [v2_app], 9
+    jne .chk_rtc
+    mov eax, 1
+    call k_sleep_ms
+    inc byte [pg_ticks]
+    cmp byte [pg_ticks], 30
+    jb .chk_rtc
+    mov byte [pg_ticks], 0
+    call v2_tick_pong
+    jmp v2_render_frame
+
+.chk_rtc:
     mov al, 0x00
     out 0x70, al
     in al, 0x71
@@ -91,6 +107,8 @@ v2_loop:
     je .calc_keys
     cmp byte [v2_app], 6
     je .music_keys
+    cmp byte [v2_app], 9
+    je .pong_keys
 
     cmp al, 0x11
     je .ku
@@ -110,7 +128,7 @@ v2_loop:
 
 .exit_keys:
     cmp al, 0x02
-    je cmd_shutdown
+    je k_real_poweroff
     cmp al, 0x03
     je cmd_reboot
     cmp al, 0x04
@@ -124,7 +142,33 @@ v2_loop:
     je v2_play_s2
     cmp al, 0x04
     je v2_play_s3
+    cmp al, 0x05
+    je v2_play_s4
+    cmp al, 0x06
+    je v2_play_s5
     jmp v2_loop
+
+.pong_keys:
+    cmp al, 0x1E            ; 'A'
+    je .pg_l
+    cmp al, 0x20            ; 'D'
+    je .pg_r
+    cmp al, 0x13            ; 'R'
+    je .pg_rst
+    jmp v2_loop
+.pg_l:
+    cmp dword [pg_px], 185
+    jle v2_loop
+    sub dword [pg_px], 24
+    jmp v2_render_frame
+.pg_r:
+    cmp dword [pg_px], 530
+    jge v2_loop
+    add dword [pg_px], 24
+    jmp v2_render_frame
+.pg_rst:
+    call v2_init_pong
+    jmp v2_render_frame
 
 .ku: sub dword [my], 16
      jmp .clamp
@@ -151,11 +195,33 @@ v2_loop:
     mov byte [midx], 0
     mov al, [mpkt]
     test al, 0x01
-    jz .nc
+    jz .btn_up
+    cmp byte [m_down], 0
+    jne .still_down
     mov byte [mclk], 1
-.nc:
+.still_down:
+    mov byte [m_down], 1
+    jmp .move_xy
+.btn_up:
+    mov byte [m_down], 0
+
+.move_xy:
     movsx ebx, byte [mpkt + 1]
     add [mx], ebx
+
+    ; Se OldPong estiver aberto, touchpad/mouse move a raquete
+    cmp byte [v2_app], 9
+    jne .skip_pg_m
+    add [pg_px], ebx
+    cmp dword [pg_px], 175
+    jge .pg_max
+    mov dword [pg_px], 175
+.pg_max:
+    cmp dword [pg_px], 540
+    jle .skip_pg_m
+    mov dword [pg_px], 540
+.skip_pg_m:
+
     movsx ebx, byte [mpkt + 2]
     sub [my], ebx
 
@@ -173,6 +239,14 @@ v2_loop:
     jle .done_m
     mov dword [my], 584
 .done_m:
+    ; Se OldPaint (v2_app = 8) estiver aberto e botao segurado, pinta continuo!
+    cmp byte [v2_app], 8
+    jne .chk_clk_now
+    cmp byte [m_down], 1
+    jne .chk_clk_now
+    call v2_paint_brush
+
+.chk_clk_now:
     cmp byte [mclk], 1
     je v2_handle_click
     jmp v2_render_frame
@@ -194,6 +268,7 @@ v2_loop:
     mov [v2_nbuf + ebx], al
     inc dword [v2_nlen]
     mov byte [v2_nbuf + ebx + 1], 0
+    mov byte [note_fs_msg], 0
     jmp v2_render_frame
 .nbs:
     or ebx, ebx
@@ -229,7 +304,6 @@ v2_loop:
     dec dword [v2_cval]
     jmp v2_render_frame
 
-; Atualiza apenas o pedacinho do relogio na barra escura sem piscar a tela
 v2_update_clock_only:
     mov dword [r_x], 645
     mov dword [r_y], 568
@@ -248,7 +322,11 @@ v2_update_clock_only:
     ret
 
 last_sec db 0xFF
+pg_ticks db 0
+m_down   db 0
 
 %include "oldog_v2_clicks.asm"
 %include "oldog_v2_draw.asm"
 %include "oldog_v2_apps.asm"
+%include "oldog_v2_paint_game.asm"
+%include "oldog_v2_fe.asm"
