@@ -35,3 +35,4 @@ This compiles `boot.asm` and `kernel.asm` into a standard 1.44 MB (`1,474,560` b
 ```bash
 qemu-system-i386 -fda oldos.img -audiodev pa,id=snd0 -machine pcspk-audiodev=snd0
 ```
+You can also go to v86 (https://copy.sh/v86/), load `oldos.img` into the floppy disk or hard disk image field, and run it.
