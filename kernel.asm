@@ -1,5 +1,5 @@
 [BITS 32]
-[ORG 0x1000]
+[ORG 0x100000]
 
 kernel_main:
     mov esp, 0x90000
@@ -74,6 +74,11 @@ prompt_loop:
     je cmd_beep
 
     mov esi, cmd_buf
+    mov edi, str_cat
+    call k_strcmp
+    je cmd_cat
+
+    mov esi, cmd_buf
     mov edi, str_mem
     call k_strcmp
     je cmd_mem
@@ -96,13 +101,19 @@ prompt_loop:
     mov esi, cmd_buf
     mov edi, str_shutdown
     call k_strcmp
-    je cmd_shutdown
+    je k_real_poweroff
 
     mov esi, cmd_buf
     mov edi, str_echo
     mov ecx, 5
     call k_strncmp
     je cmd_echo
+
+    mov esi, cmd_buf
+    mov edi, str_save
+    mov ecx, 5
+    call k_strncmp
+    je cmd_save
 
     mov esi, cmd_buf
     mov edi, str_play
@@ -161,12 +172,56 @@ cmd_beep:
     call k_tone_ms
     jmp prompt_loop
 
+cmd_save:
+    mov esi, cmd_buf + 5
+    mov edi, v2_nbuf
+    mov ecx, 58
+    rep movsb
+    call oldfs_save_note
+    cmp byte [oldfs_status], 0
+    jne .save_err
+    mov dword [t_fg_rgb], 0x004ADE80
+    mov esi, oldfs_msg_ok
+    call k_print_xy
+    jmp .save_nl
+.save_err:
+    mov dword [t_fg_rgb], 0x00F87171
+    mov esi, oldfs_msg_err
+    call k_print_xy
+.save_nl:
+    mov dword [t_px], 16
+    add dword [t_py], 18
+    call k_flip_screen
+    jmp prompt_loop
+
+cmd_cat:
+    call oldfs_load_note
+    cmp byte [oldfs_status], 0
+    jne .cat_err
+    mov dword [t_fg_rgb], 0x00FACC15
+    mov esi, v2_nbuf
+    call k_print_xy
+    jmp .cat_nl
+.cat_err:
+    mov dword [t_fg_rgb], 0x00F87171
+    mov esi, oldfs_msg_err
+    call k_print_xy
+.cat_nl:
+    mov dword [t_px], 16
+    add dword [t_py], 18
+    call k_flip_screen
+    jmp prompt_loop
+
 cmd_play:
     mov al, [cmd_buf + 5]
     cmp al, '2'
     je .t2
     cmp al, '3'
     je .t3
+    cmp al, '4'
+    je .t4
+    cmp al, '5'
+    je .t5
     mov esi, ode_30_notes
     call k_play_melody_ptr
     jmp prompt_loop
@@ -176,6 +231,14 @@ cmd_play:
     jmp prompt_loop
 .t3:
     mov esi, song_arcade
+    call k_play_melody_ptr
+    jmp prompt_loop
+.t4:
+    mov esi, song_elise
+    call k_play_melody_ptr
+    jmp prompt_loop
+.t5:
+    mov esi, song_tetris
     call k_play_melody_ptr
     jmp prompt_loop
 
@@ -246,18 +309,6 @@ cmd_cpu:
     call k_flip_screen
     jmp prompt_loop
 
-cmd_shutdown:
-    call k_shell_cls
-    mov dword [t_px], 240
-    mov dword [t_py], 280
-    mov dword [t_fg_rgb], 0x00FACC15
-    mov esi, msg_safe_off
-    call k_print_xy
-    call k_flip_screen
-    cli
-.hlt: hlt
-    jmp .hlt
-
 cmd_reboot:
     cli
 .w: in al, 0x64
@@ -267,8 +318,10 @@ cmd_reboot:
     out 0x64, al
     hlt
 
+%include "acpi_power.asm"
+%include "oldfs.asm"
 %include "shell_sys.asm"
 %include "gfx32.asm"
 %include "oldog_v2.asm"
 
-times 24576 - ($ - $$) db 0
+times 32768 - ($ - $$) db 0
